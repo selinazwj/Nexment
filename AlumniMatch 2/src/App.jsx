@@ -1,735 +1,1248 @@
-import { useState, useRef, useEffect } from "react";
+import { useMemo, useState } from "react";
 
-// ---------- Mock alumni data (front-end only, no backend) ----------
-const ALUMNI = [
+const STUDENT = {
+  name: "Selina Zhang",
+  school: "Boston University",
+  program: "Data Science and Economics",
+  year: "Class of 2027",
+  location: "Boston, MA",
+  interests: ["product analytics", "startup strategy", "AI tools", "consumer research"],
+  languages: ["English", "Mandarin"],
+  summary:
+    "Undergraduate student building toward product, data, and startup roles. Looking for mentors who can give concrete recruiting advice, portfolio feedback, and industry context.",
+  education: [
+    "B.A. track: Data Science and Economics",
+    "Relevant work: statistics, databases, machine learning, market research",
+  ],
+  experience: [
+    "Campus research projects on survey data, product positioning, and user behavior",
+    "Built prototypes for participant recruitment and student networking workflows",
+    "Event and community work with international student groups",
+  ],
+  projects: [
+    "SurveyBridge: research participant recruitment concept",
+    "AlumniMatch: mentor recommendation and outreach prototype",
+    "Predictive analysis notebooks for business and savings estimation",
+  ],
+  goals: [
+    "Find an internship in product, data, or strategy",
+    "Improve resume and LinkedIn positioning",
+    "Understand early-career paths from alumni with similar backgrounds",
+  ],
+};
+
+const MENTORS = [
   {
     id: 1,
-    name: "Priya Nair",
-    grad: "'19",
-    field: "Software Engineering",
-    role: "Senior Engineer at Stripe",
-    tags: ["software", "engineering", "tech", "backend", "computer science", "cs"],
-    blurb:
-      "First-gen grad. Bombed her first two interview loops, then landed big tech. Will tell you what actually matters before your first job, not after.",
-    initials: "PN",
+    name: "Maya Chen",
+    initials: "MC",
+    title: "Product Manager",
+    company: "Notion",
+    school: "Boston University, CAS '18",
+    location: "San Francisco, CA",
+    ranking: 98,
+    fit: "Best overall fit",
+    focus: ["Product analytics", "Consumer apps", "Internship recruiting"],
+    bio:
+      "Maya moved from economics coursework into product analytics, then product management. She mentors students on turning class projects into interview-ready product stories.",
+    why:
+      "Matches your product analytics interest, startup curiosity, and need for practical recruiting guidance.",
+    cv: [
+      "Product Manager, Notion",
+      "Former Growth Analyst, Spotify",
+      "BU Alumni Career Panel speaker",
+    ],
+    availability: "2 openings this month",
   },
   {
     id: 2,
-    name: "Marcus Bell",
-    grad: "'17",
-    field: "Product & Design",
-    role: "Product Lead at Figma",
-    tags: ["product", "design", "ux", "pm", "product management", "ui"],
-    blurb:
-      "Switched from a non-design major into product. Knows the path when your degree doesn't match the job you want.",
-    initials: "MB",
+    name: "Daniel Okafor",
+    initials: "DO",
+    title: "Data Scientist",
+    company: "Spotify",
+    school: "Boston University, CDS '19",
+    location: "New York, NY",
+    ranking: 94,
+    fit: "Strong data mentor",
+    focus: ["Machine learning", "Portfolio review", "Research to industry"],
+    bio:
+      "Daniel helps students explain technical projects clearly and decide whether industry, research, or graduate school makes more sense.",
+    why:
+      "Strong overlap with your data science coursework and project-heavy profile.",
+    cv: ["Data Scientist, Spotify", "Former Research Assistant, BU", "M.S. Applied Analytics"],
+    availability: "1 opening this month",
   },
   {
     id: 3,
-    name: "Sofia Reyes",
-    grad: "'20",
-    field: "Finance & Consulting",
-    role: "Associate at McKinsey",
-    tags: ["finance", "consulting", "business", "economics", "banking", "strategy"],
-    blurb:
-      "Recruited with zero connections in the industry. Built the network she now uses to pull people up.",
-    initials: "SR",
+    name: "Priya Nair",
+    initials: "PN",
+    title: "Software Engineer",
+    company: "Stripe",
+    school: "Boston University, ENG '17",
+    location: "Seattle, WA",
+    ranking: 90,
+    fit: "Technical interview help",
+    focus: ["Backend systems", "Technical interviews", "First job search"],
+    bio:
+      "Priya is direct, practical, and useful for students who want to understand what technical hiring actually rewards.",
+    why:
+      "Useful if you decide to pursue more technical AI tooling or engineering-adjacent roles.",
+    cv: ["Senior Engineer, Stripe", "Former Engineer, Dropbox", "Mentor for first-gen students"],
+    availability: "3 openings this month",
   },
   {
     id: 4,
-    name: "Daniel Okafor",
-    grad: "'18",
-    field: "Data & Research",
-    role: "Data Scientist at Spotify",
-    tags: ["data", "data science", "research", "ml", "machine learning", "analytics", "statistics"],
-    blurb:
-      "Went from a research lab to industry. Honest about which grad-school-vs-industry advice is noise and which is real.",
-    initials: "DO",
+    name: "Sofia Reyes",
+    initials: "SR",
+    title: "Strategy Associate",
+    company: "McKinsey",
+    school: "Boston University, Questrom '16",
+    location: "Boston, MA",
+    ranking: 86,
+    fit: "Business strategy path",
+    focus: ["Consulting", "Case interviews", "Business storytelling"],
+    bio:
+      "Sofia works well with students who are choosing between consulting, startups, and product roles.",
+    why:
+      "Connects your economics background with strategy recruiting and structured interview prep.",
+    cv: ["Associate, McKinsey", "Former Venture Fellow", "BU Questrom alumni mentor"],
+    availability: "2 openings this month",
   },
   {
     id: 5,
     name: "Hannah Cho",
-    grad: "'16",
-    field: "Marketing & Media",
-    role: "Brand Director at A24",
-    tags: ["marketing", "media", "communications", "comms", "advertising", "brand", "content"],
-    blurb:
-      "Built a career in a field with no clear ladder. Good at the questions that don't have a Google answer.",
     initials: "HC",
+    title: "Brand Strategy Lead",
+    company: "A24",
+    school: "Boston University, COM '15",
+    location: "Los Angeles, CA",
+    ranking: 81,
+    fit: "Creative strategy mentor",
+    focus: ["Brand strategy", "Media", "Communications"],
+    bio:
+      "Hannah helps students turn broad creative interests into a focused portfolio and outreach strategy.",
+    why:
+      "Good secondary match for communication, storytelling, and positioning work.",
+    cv: ["Brand Strategy Lead, A24", "Former Strategist, Wieden+Kennedy", "Portfolio reviewer"],
+    availability: "1 opening next month",
   },
 ];
 
-function matchAlumnus(field, goal) {
-  const text = (field + " " + goal).toLowerCase();
-  let best = null;
-  let bestScore = 0;
-  for (const a of ALUMNI) {
-    let score = 0;
-    for (const tag of a.tags) {
-      if (text.includes(tag)) score += tag.length; // longer/more specific tag = stronger signal
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      best = a;
-    }
-  }
-  return best || ALUMNI[0]; // graceful fallback, never empty
-}
-
-// ---------- Small reusable bits ----------
-function Eyebrow({ children }) {
-  return <span className="eyebrow">{children}</span>;
-}
+const QUICK_MESSAGES = [
+  "Hi Maya, I matched with you because I am exploring product analytics and startup roles.",
+  "I would love feedback on how to position my projects for internships.",
+  "Are you available for a 20-minute call sometime next week?",
+];
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeView, setActiveView] = useState("matches");
+  const [selectedMentor, setSelectedMentor] = useState(MENTORS[0]);
+  const [matchedMentorId, setMatchedMentorId] = useState(null);
+  const [messages, setMessages] = useState([
+    {
+      from: "mentor",
+      text: "Thanks for matching. Send over what you are working on and I can point you in the right direction.",
+    },
+  ]);
+  const [draft, setDraft] = useState("");
+
+  const rankedMentors = useMemo(
+    () => [...MENTORS].sort((a, b) => b.ranking - a.ranking),
+    []
+  );
+
+  function handleLogin(event) {
+    event.preventDefault();
+    setIsLoggedIn(true);
+  }
+
+  function handleMatch(mentor) {
+    setSelectedMentor(mentor);
+    setMatchedMentorId(mentor.id);
+    setActiveView("messages");
+    setMessages([
+      {
+        from: "mentor",
+        text: `Hi Selina, glad we matched. I can help with ${mentor.focus[0].toLowerCase()} and career planning.`,
+      },
+    ]);
+  }
+
+  function sendMessage(event) {
+    event.preventDefault();
+    const text = draft.trim();
+    if (!text) return;
+    setMessages((current) => [...current, { from: "student", text }]);
+    setDraft("");
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <>
+        <LoginPage onLogin={handleLogin} />
+        <Style />
+      </>
+    );
+  }
+
   return (
-    <div className="page">
-      <Nav />
-      <Hero />
-      <Problem />
-      <Demo />
-      <HowItWorks />
-      <Value />
-      <CTA />
-      <Footer />
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand-block">
+          <div className="brand-mark">A</div>
+          <div>
+            <strong>AlumniMatch</strong>
+            <span>Student portal</span>
+          </div>
+        </div>
+
+        <nav className="side-nav" aria-label="Primary">
+          <button
+            className={activeView === "profile" ? "active" : ""}
+            onClick={() => setActiveView("profile")}
+            type="button"
+          >
+            Profile
+          </button>
+          <button
+            className={activeView === "matches" ? "active" : ""}
+            onClick={() => setActiveView("matches")}
+            type="button"
+          >
+            Mentor list
+          </button>
+          <button
+            className={activeView === "messages" ? "active" : ""}
+            onClick={() => setActiveView("messages")}
+            type="button"
+          >
+            Messages
+          </button>
+        </nav>
+
+        <div className="student-card">
+          <div className="student-avatar">SZ</div>
+          <div>
+            <strong>{STUDENT.name}</strong>
+            <span>{STUDENT.program}</span>
+          </div>
+        </div>
+      </aside>
+
+      <main className="workspace">
+        <TopBar />
+        {activeView === "profile" && <ProfilePage />}
+        {activeView === "matches" && (
+          <MentorPage
+            mentors={rankedMentors}
+            selectedMentor={selectedMentor}
+            matchedMentorId={matchedMentorId}
+            onSelect={setSelectedMentor}
+            onMatch={handleMatch}
+          />
+        )}
+        {activeView === "messages" && (
+          <MessagesPage
+            mentor={selectedMentor}
+            matchedMentorId={matchedMentorId}
+            messages={messages}
+            draft={draft}
+            onDraft={setDraft}
+            onSend={sendMessage}
+            onQuickMessage={(text) => setDraft(text)}
+          />
+        )}
+      </main>
       <Style />
     </div>
   );
 }
 
-function Nav() {
+function LoginPage({ onLogin }) {
   return (
-    <nav className="nav">
-      <a className="brand" href="#top">
-        <span className="brand-mark" aria-hidden="true" />
-        Throughline
-      </a>
-      <div className="nav-links">
-        <a href="#demo">Try the match</a>
-        <a href="#universities">For universities</a>
-        <a href="#cta" className="nav-cta">
-          Book a demo
-        </a>
-      </div>
-    </nav>
+    <main className="login-page">
+      <section className="login-panel">
+        <div className="login-copy">
+          <div className="brand-row">
+            <div className="brand-mark">A</div>
+            <span>AlumniMatch</span>
+          </div>
+          <h1>Sign in as a student and find the alumni mentor who fits your path.</h1>
+          <p>
+            A calmer career platform for students: build a serious profile, review
+            ranked mentor recommendations, match, and start the conversation.
+          </p>
+        </div>
+
+        <form className="login-card" onSubmit={onLogin}>
+          <div>
+            <p className="section-kicker">Student login</p>
+            <h2>Welcome back</h2>
+          </div>
+          <label>
+            School email
+            <input defaultValue="selina@bu.edu" type="email" />
+          </label>
+          <label>
+            Password
+            <input defaultValue="alumnimatch" type="password" />
+          </label>
+          <button className="primary-button" type="submit">
+            Log in as student
+          </button>
+          <p className="login-note">Prototype login. No account setup required.</p>
+        </form>
+      </section>
+    </main>
   );
 }
 
-function Hero() {
+function TopBar() {
   return (
-    <header className="hero" id="top">
-      <div className="hero-inner">
-        <Eyebrow>Alumni mentorship, matched to you</Eyebrow>
-        <h1 className="hero-title">
-          Your network shouldn't
-          <br />
-          end at <span className="hl">graduation</span>.
-        </h1>
-        <p className="hero-sub">
-          We partner with universities to match every new graduate with an alumni
-          mentor from their own field. Not a stranger from the internet. Someone
-          from your own school who studied what you studied and has already walked
-          the path you're starting.
-        </p>
-        <div className="hero-actions">
-          <a href="#demo" className="btn btn-primary">
-            Find your mentor
-          </a>
-          <a href="#universities" className="btn btn-ghost">
-            For universities
-          </a>
-        </div>
+    <header className="top-bar">
+      <div>
+        <p className="section-kicker">Boston University network</p>
+        <h1>Student mentorship dashboard</h1>
       </div>
-      <ThroughlineGraphic />
+      <div className="top-actions">
+        <span>Profile strength: 88%</span>
+        <button type="button">Export CV</button>
+      </div>
     </header>
   );
 }
 
-// The signature element: a single line that travels from "campus" to "career",
-// with the student node and the alumni node connected across the graduation point.
-function ThroughlineGraphic() {
+function ProfilePage() {
   return (
-    <div className="throughline" aria-hidden="true">
-      <svg viewBox="0 0 1200 200" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="var(--ink-soft)" />
-            <stop offset="55%" stopColor="var(--gold)" />
-            <stop offset="100%" stopColor="var(--gold)" />
-          </linearGradient>
-        </defs>
-        <path
-          className="tl-path"
-          d="M0,150 C250,150 300,60 520,60 C620,60 600,150 760,150 C920,150 950,70 1200,70"
-          fill="none"
-          stroke="url(#lineGrad)"
-          strokeWidth="2.5"
-        />
-        <g className="tl-node tl-node-a">
-          <circle cx="120" cy="150" r="6" />
-          <text x="120" y="178">you, graduating</text>
-        </g>
-        <g className="tl-node tl-node-b">
-          <circle cx="1080" cy="72" r="6" />
-          <text x="1080" y="48">an alum, already there</text>
-        </g>
-        <line className="tl-grad" x1="520" y1="20" x2="520" y2="185" />
-        <text className="tl-grad-label" x="528" y="32">
-          graduation
-        </text>
-      </svg>
-    </div>
-  );
-}
+    <section className="profile-layout">
+      <div className="profile-main">
+        <div className="panel intro-panel">
+          <div className="large-avatar">SZ</div>
+          <div>
+            <p className="section-kicker">Student profile</p>
+            <h2>{STUDENT.name}</h2>
+            <p>{STUDENT.summary}</p>
+            <div className="profile-meta">
+              <span>{STUDENT.school}</span>
+              <span>{STUDENT.year}</span>
+              <span>{STUDENT.location}</span>
+            </div>
+          </div>
+        </div>
 
-function Problem() {
-  return (
-    <section className="section problem">
-      <div className="section-head">
-        <Eyebrow>The drop-off</Eyebrow>
-        <h2>
-          Graduation is supposed to be a beginning. For most graduates, it's the
-          moment they lose the people who knew how to help them.
-        </h2>
+        <CvSection title="Education" items={STUDENT.education} />
+        <CvSection title="Experience" items={STUDENT.experience} />
+        <CvSection title="Selected projects" items={STUDENT.projects} />
+        <CvSection title="Mentorship goals" items={STUDENT.goals} />
       </div>
-      <p className="problem-body">
-        Professors, academic advisors, the campus network you spent four years
-        building: gone almost overnight. Right when the questions get harder, like
-        which offer to take or whether you're even on the right path, the support
-        is gone. The hardest part of early career isn't a lack of information.
-        It's not knowing who to trust.
-      </p>
+
+      <aside className="profile-aside">
+        <div className="panel">
+          <h3>Target roles</h3>
+          <div className="tag-list">
+            {STUDENT.interests.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </div>
+        <div className="panel">
+          <h3>Languages</h3>
+          <div className="tag-list">
+            {STUDENT.languages.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </div>
+        <div className="panel score-panel">
+          <h3>Recommendation inputs</h3>
+          <dl>
+            <div>
+              <dt>Field fit</dt>
+              <dd>High</dd>
+            </div>
+            <div>
+              <dt>Availability</dt>
+              <dd>Medium</dd>
+            </div>
+            <div>
+              <dt>Alumni proximity</dt>
+              <dd>BU verified</dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
     </section>
   );
 }
 
-// ---------- The interactive demo (the part judges remember) ----------
-function Demo() {
-  const fields = [
-    "Software Engineering",
-    "Product & Design",
-    "Finance & Consulting",
-    "Data & Research",
-    "Marketing & Media",
-  ];
-  const [field, setField] = useState("");
-  const [goal, setGoal] = useState("");
-  const [stage, setStage] = useState("form"); // form | matching | result
-  const [result, setResult] = useState(null);
-
-  function runMatch() {
-    if (!field) return;
-    setStage("matching");
-    const picked = matchAlumnus(field, goal);
-    setTimeout(() => {
-      setResult(picked);
-      setStage("result");
-    }, 1800);
-  }
-
-  function reset() {
-    setStage("form");
-    setResult(null);
-  }
-
+function CvSection({ title, items }) {
   return (
-    <section className="section demo" id="demo">
-      <div className="section-head">
-        <Eyebrow>Try it</Eyebrow>
-        <h2>Tell us your field. Meet your match.</h2>
-        <p className="section-lede">
-          This is a live preview of how matching works inside a partner
-          university. Pick a field, add a goal, and we'll surface an alumni mentor
-          from your school.
-        </p>
+    <section className="panel cv-section">
+      <h3>{title}</h3>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function MentorPage({ mentors, selectedMentor, matchedMentorId, onSelect, onMatch }) {
+  return (
+    <section className="mentor-layout">
+      <div className="mentor-list panel">
+        <div className="list-header">
+          <div>
+            <p className="section-kicker">Ranked recommendations</p>
+            <h2>List of mentors</h2>
+          </div>
+          <span>{mentors.length} alumni</span>
+        </div>
+
+        {mentors.map((mentor, index) => (
+          <button
+            className={"mentor-row" + (selectedMentor.id === mentor.id ? " selected" : "")}
+            key={mentor.id}
+            onClick={() => onSelect(mentor)}
+            type="button"
+          >
+            <span className="rank">{index + 1}</span>
+            <span className="mini-avatar">{mentor.initials}</span>
+            <span className="mentor-row-body">
+              <strong>{mentor.name}</strong>
+              <small>
+                {mentor.title}, {mentor.company}
+              </small>
+              <em>{mentor.fit}</em>
+            </span>
+            <span className="rank-score">{mentor.ranking}</span>
+          </button>
+        ))}
       </div>
 
-      <div className="demo-card">
-        {stage === "form" && (
-          <div className="demo-form">
-            <label className="field-label">Your field</label>
-            <div className="chips">
-              {fields.map((f) => (
-                <button
-                  key={f}
-                  className={"chip" + (field === f ? " chip-on" : "")}
-                  onClick={() => setField(f)}
-                  type="button"
-                >
-                  {f}
-                </button>
-              ))}
+      <MentorDetail
+        mentor={selectedMentor}
+        isMatched={matchedMentorId === selectedMentor.id}
+        onMatch={() => onMatch(selectedMentor)}
+      />
+    </section>
+  );
+}
+
+function MentorDetail({ mentor, isMatched, onMatch }) {
+  return (
+    <aside className="mentor-detail panel">
+      <div className="detail-head">
+        <div className="large-avatar mentor-avatar">{mentor.initials}</div>
+        <div>
+          <p className="section-kicker">Mentor profile</p>
+          <h2>{mentor.name}</h2>
+          <p>
+            {mentor.title} at {mentor.company}
+          </p>
+        </div>
+      </div>
+
+      <div className="match-score">
+        <strong>{mentor.ranking}%</strong>
+        <span>ranking match</span>
+      </div>
+
+      <div className="detail-block">
+        <h3>Why recommended</h3>
+        <p>{mentor.why}</p>
+      </div>
+
+      <div className="detail-block">
+        <h3>Background</h3>
+        <p>{mentor.bio}</p>
+        <ul>
+          {mentor.cv.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="tag-list">
+        {mentor.focus.map((tag) => (
+          <span key={tag}>{tag}</span>
+        ))}
+      </div>
+
+      <div className="availability">{mentor.availability}</div>
+      <button className="primary-button" onClick={onMatch} type="button">
+        {isMatched ? "Matched - open messages" : "Match with this mentor"}
+      </button>
+    </aside>
+  );
+}
+
+function MessagesPage({
+  mentor,
+  matchedMentorId,
+  messages,
+  draft,
+  onDraft,
+  onSend,
+  onQuickMessage,
+}) {
+  const hasMatch = matchedMentorId === mentor.id;
+
+  return (
+    <section className="messages-layout">
+      <div className="panel conversation-panel">
+        <div className="conversation-head">
+          <div className="mini-avatar">{mentor.initials}</div>
+          <div>
+            <h2>{mentor.name}</h2>
+            <p>
+              {mentor.title}, {mentor.company}
+            </p>
+          </div>
+          <span className={hasMatch ? "status online" : "status"}>{hasMatch ? "Matched" : "Not matched"}</span>
+        </div>
+
+        <div className="message-thread">
+          {!hasMatch && (
+            <div className="empty-message">
+              Match with {mentor.name} first to start a conversation.
             </div>
+          )}
+          {hasMatch &&
+            messages.map((message, index) => (
+              <div className={"message " + message.from} key={`${message.from}-${index}`}>
+                {message.text}
+              </div>
+            ))}
+        </div>
 
-            <label className="field-label" htmlFor="goal">
-              What are you trying to figure out? <span className="opt">optional</span>
-            </label>
-            <input
-              id="goal"
-              className="text-input"
-              placeholder="e.g. should I take the offer, or hold out for something better?"
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-            />
+        <form className="message-box" onSubmit={onSend}>
+          <input
+            disabled={!hasMatch}
+            onChange={(event) => onDraft(event.target.value)}
+            placeholder={hasMatch ? "Write a message..." : "Match first to unlock messaging"}
+            value={draft}
+          />
+          <button className="primary-button" disabled={!hasMatch} type="submit">
+            Send
+          </button>
+        </form>
+      </div>
 
+      <aside className="panel quick-panel">
+        <h3>Suggested opener</h3>
+        <div className="quick-list">
+          {QUICK_MESSAGES.map((text) => (
             <button
-              className="btn btn-primary btn-block"
-              onClick={runMatch}
-              disabled={!field}
+              disabled={!hasMatch}
+              key={text}
+              onClick={() => onQuickMessage(text)}
               type="button"
             >
-              {field ? "Find my mentor" : "Pick a field to start"}
+              {text}
             </button>
-          </div>
-        )}
-
-        {stage === "matching" && (
-          <div className="matching">
-            <div className="matching-line" />
-            <p className="matching-text">
-              Matching you with an alum in <strong>{field}</strong>…
-            </p>
-            <div className="matching-steps">
-              <span>Reading your profile</span>
-              <span>Searching alumni in your field</span>
-              <span>Finding someone who's been there</span>
-            </div>
-          </div>
-        )}
-
-        {stage === "result" && result && (
-          <div className="result">
-            <div className="result-top">
-              <div className="avatar">{result.initials}</div>
-              <div className="result-id">
-                <div className="result-name">
-                  {result.name} <span className="result-grad">Class of {result.grad}</span>
-                </div>
-                <div className="result-role">{result.role}</div>
-                <div className="result-field">{result.field}</div>
-              </div>
-              <div className="match-badge">
-                <span className="match-dot" /> Matched
-              </div>
-            </div>
-            <p className="result-blurb">{result.blurb}</p>
-            <div className="result-why">
-              <span className="why-label">Why this match</span>
-              Same school. Same field. A real person invested in your success, not a
-              random stranger.
-            </div>
-            <div className="result-actions">
-              <button className="btn btn-primary" type="button">
-                Request intro
-              </button>
-              <button className="btn btn-ghost" onClick={reset} type="button">
-                Try another field
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function HowItWorks() {
-  const steps = [
-    {
-      n: "01",
-      t: "The university brings its people in",
-      d: "Alumni and working professionals opt in to mentor. Because they share an alma mater with the students, they're glad to help. No cold strangers.",
-    },
-    {
-      n: "02",
-      t: "Graduates get matched by field and profile",
-      d: "Every new graduate is paired with an alum whose field, path, and background actually fit theirs, not whoever happens to be free.",
-    },
-    {
-      n: "03",
-      t: "The relationship picks up where campus left off",
-      d: "The advice means something different coming from someone who sat in the same lecture halls and has already walked the path.",
-    },
-  ];
-  return (
-    <section className="section how">
-      <div className="section-head">
-        <Eyebrow>How it works</Eyebrow>
-        <h2>A real connection, not a directory.</h2>
-      </div>
-      <ol className="steps">
-        {steps.map((s) => (
-          <li className="step" key={s.n}>
-            <span className="step-n">{s.n}</span>
-            <div>
-              <h3>{s.t}</h3>
-              <p>{s.d}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
-function Value() {
-  return (
-    <section className="section value" id="universities">
-      <div className="value-grid">
-        <div className="value-col">
-          <Eyebrow>For graduates</Eyebrow>
-          <h3>Someone in your corner from day one.</h3>
-          <p>
-            Every match is grounded in a real, verifiable connection: a shared
-            alma mater, a shared field, and a real person who has been exactly
-            where you are. That's the difference between figuring it out alone and
-            having someone who can tell you what actually matters.
-          </p>
+          ))}
         </div>
-        <div className="value-col">
-          <Eyebrow>For universities</Eyebrow>
-          <h3>Graduate outcomes you can measure.</h3>
-          <p>
-            Graduate outcomes and alumni engagement sit at the core of every
-            institution's mission, and both are notoriously hard to move. We give
-            universities a scalable way to support graduates after they leave,
-            while turning engaged alumni into an active community that gives back.
-          </p>
-        </div>
-      </div>
+      </aside>
     </section>
   );
 }
 
-function CTA() {
-  return (
-    <section className="section cta" id="cta">
-      <div className="cta-inner">
-        <h2>
-          Your network shouldn't end at graduation.
-          <br />
-          We make sure it doesn't.
-        </h2>
-        <div className="cta-actions">
-          <a href="#demo" className="btn btn-primary">
-            Find your mentor
-          </a>
-          <a href="#top" className="btn btn-ghost">
-            Book a university demo
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="footer">
-      <span className="brand">
-        <span className="brand-mark" aria-hidden="true" /> Throughline
-      </span>
-      <span className="footer-note">
-        Alumni mentorship, matched to you. Built at [Hackathon].
-      </span>
-    </footer>
-  );
-}
-
-// ---------- Styles ----------
 function Style() {
   return (
     <style>{`
-      :root{
-        --ink:#14213d;          /* deep indigo, academic + trust */
-        --ink-soft:#3b4a72;
-        --ink-2:#5a6788;
-        --gold:#c79a3b;         /* warm alumni gold */
-        --gold-soft:#e8d6a8;
-        --paper:#f7f6f2;        /* warm off-white, not the cream cliche */
-        --paper-2:#eeede6;
-        --card:#ffffff;
-        --line:#e2e0d6;
-        --white:#ffffff;
-        --maxw:1080px;
-        font-synthesis:none;
+      :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface-2: #eef2f5;
+        --ink: #1f2933;
+        --muted: #607080;
+        --quiet: #8a98a8;
+        --line: #dce3ea;
+        --accent: #1f6f78;
+        --accent-dark: #164f56;
+        --accent-soft: #dceff1;
+        --blue: #355d9c;
+        --shadow: 0 18px 45px rgba(31, 41, 51, 0.08);
       }
-      *{box-sizing:border-box;}
-      html{scroll-behavior:smooth;}
-      body{margin:0;}
-      .page{
-        background:var(--paper);
-        color:var(--ink);
-        font-family:"Inter","Helvetica Neue",Arial,sans-serif;
-        font-size:17px;
-        line-height:1.6;
-        -webkit-font-smoothing:antialiased;
-        overflow-x:hidden;
-      }
-      .eyebrow{
-        display:inline-block;
-        font-size:12px;
-        letter-spacing:.18em;
-        text-transform:uppercase;
-        color:var(--gold);
-        font-weight:600;
-        margin-bottom:18px;
-      }
-      h1,h2,h3{
-        font-family:"Spectral","Georgia",serif;
-        font-weight:600;
-        line-height:1.12;
-        letter-spacing:-.01em;
-      }
-      .section{
-        max-width:var(--maxw);
-        margin:0 auto;
-        padding:96px 28px;
-      }
-      .section-head{max-width:760px;margin-bottom:40px;}
-      .section-head h2{font-size:clamp(28px,4vw,42px);margin:0;}
-      .section-lede{color:var(--ink-2);margin-top:18px;font-size:18px;}
 
-      /* NAV */
-      .nav{
-        position:sticky;top:0;z-index:50;
-        display:flex;align-items:center;justify-content:space-between;
-        padding:18px 28px;
-        background:rgba(247,246,242,.85);
-        backdrop-filter:blur(10px);
-        border-bottom:1px solid var(--line);
+      * {
+        box-sizing: border-box;
       }
-      .brand{
-        display:inline-flex;align-items:center;gap:10px;
-        font-family:"Spectral",serif;font-weight:600;font-size:19px;
-        color:var(--ink);text-decoration:none;letter-spacing:-.01em;
-      }
-      .brand-mark{
-        width:14px;height:14px;border-radius:50%;
-        background:radial-gradient(circle at 30% 30%,var(--gold),var(--ink));
-        display:inline-block;
-      }
-      .nav-links{display:flex;align-items:center;gap:26px;}
-      .nav-links a{color:var(--ink-soft);text-decoration:none;font-size:15px;font-weight:500;}
-      .nav-links a:hover{color:var(--ink);}
-      .nav-cta{
-        background:var(--ink);color:var(--white)!important;
-        padding:9px 16px;border-radius:999px;
-      }
-      .nav-cta:hover{background:var(--ink-soft);}
 
-      /* HERO */
-      .hero{
-        position:relative;
-        max-width:var(--maxw);margin:0 auto;
-        padding:90px 28px 0;
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--bg);
+        font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
-      .hero-inner{max-width:760px;}
-      .hero-title{
-        font-size:clamp(40px,7vw,76px);
-        margin:0 0 26px;
-      }
-      .hero-title .hl{
-        color:var(--gold);
-        font-style:italic;
-      }
-      .hero-sub{
-        font-size:clamp(17px,2.2vw,20px);
-        color:var(--ink-2);
-        max-width:620px;margin:0 0 34px;
-      }
-      .hero-actions{display:flex;gap:14px;flex-wrap:wrap;}
 
-      /* signature throughline graphic */
-      .throughline{
-        margin-top:64px;
-        height:200px;
-        width:100%;
+      button,
+      input {
+        font: inherit;
       }
-      .throughline svg{width:100%;height:100%;overflow:visible;}
-      .tl-path{
-        stroke-dasharray:2200;
-        stroke-dashoffset:2200;
-        animation:draw 2.6s ease forwards .2s;
-      }
-      @keyframes draw{to{stroke-dashoffset:0;}}
-      .tl-node circle{fill:var(--ink);}
-      .tl-node-b circle{fill:var(--gold);}
-      .tl-node text{
-        font-family:"Inter",sans-serif;font-size:13px;fill:var(--ink-2);
-        text-anchor:middle;font-weight:500;
-        opacity:0;animation:fadeUp .6s ease forwards 2.2s;
-      }
-      .tl-grad{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 5;}
-      .tl-grad-label{
-        font-family:"Inter",sans-serif;font-size:11px;fill:var(--ink-2);
-        letter-spacing:.12em;text-transform:uppercase;
-      }
-      @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-      /* BUTTONS */
-      .btn{
-        display:inline-flex;align-items:center;justify-content:center;
-        font-family:"Inter",sans-serif;font-weight:600;font-size:15px;
-        padding:13px 24px;border-radius:999px;border:1.5px solid transparent;
-        cursor:pointer;text-decoration:none;transition:transform .15s ease,background .2s ease,border-color .2s ease;
+      button {
+        cursor: pointer;
       }
-      .btn:active{transform:translateY(1px);}
-      .btn-primary{background:var(--ink);color:var(--white);}
-      .btn-primary:hover{background:var(--ink-soft);}
-      .btn-primary:disabled{background:var(--paper-2);color:var(--ink-2);cursor:not-allowed;}
-      .btn-ghost{background:transparent;color:var(--ink);border-color:var(--ink);}
-      .btn-ghost:hover{background:var(--ink);color:var(--white);}
-      .btn-block{width:100%;margin-top:10px;}
 
-      /* PROBLEM */
-      .problem-body{
-        max-width:740px;font-size:clamp(18px,2.4vw,22px);
-        line-height:1.55;color:var(--ink);
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
       }
-      .problem .section-head h2{color:var(--ink);}
 
-      /* DEMO */
-      .demo-card{
-        background:var(--card);
-        border:1px solid var(--line);
-        border-radius:20px;
-        padding:34px;
-        max-width:680px;
-        box-shadow:0 20px 50px -30px rgba(20,33,61,.4);
+      .login-page {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        background:
+          linear-gradient(90deg, rgba(31,111,120,0.08), transparent 38%),
+          var(--bg);
       }
-      .field-label{
-        display:block;font-size:13px;font-weight:600;
-        letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);
-        margin:0 0 12px;
-      }
-      .field-label .opt{
-        text-transform:none;letter-spacing:0;color:var(--ink-2);
-        font-weight:400;font-size:12px;
-      }
-      .chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px;}
-      .chip{
-        font-family:"Inter",sans-serif;font-size:14px;font-weight:500;
-        padding:10px 16px;border-radius:999px;
-        border:1.5px solid var(--line);background:var(--paper);color:var(--ink-soft);
-        cursor:pointer;transition:all .15s ease;
-      }
-      .chip:hover{border-color:var(--gold);color:var(--ink);}
-      .chip-on{background:var(--ink);color:var(--white);border-color:var(--ink);}
-      .text-input{
-        width:100%;font-family:"Inter",sans-serif;font-size:16px;
-        padding:14px 16px;border-radius:12px;
-        border:1.5px solid var(--line);background:var(--paper);color:var(--ink);
-        margin-bottom:8px;
-      }
-      .text-input:focus{outline:none;border-color:var(--gold);background:var(--white);}
-      .text-input::placeholder{color:var(--ink-2);}
 
-      /* matching animation */
-      .matching{padding:30px 6px;text-align:center;}
-      .matching-line{
-        height:3px;width:100%;border-radius:3px;margin-bottom:26px;
-        background:linear-gradient(90deg,var(--paper-2) 0%,var(--gold) 50%,var(--paper-2) 100%);
-        background-size:200% 100%;
-        animation:slide 1.2s linear infinite;
+      .login-panel {
+        width: min(1040px, 100%);
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 28px;
+        align-items: stretch;
       }
-      @keyframes slide{from{background-position:200% 0;}to{background-position:-200% 0;}}
-      .matching-text{font-size:18px;margin:0 0 22px;color:var(--ink);}
-      .matching-steps{display:flex;flex-direction:column;gap:10px;align-items:center;}
-      .matching-steps span{
-        font-size:14px;color:var(--ink-2);opacity:0;
-        animation:fadeUp .5s ease forwards;
-      }
-      .matching-steps span:nth-child(1){animation-delay:.1s;}
-      .matching-steps span:nth-child(2){animation-delay:.6s;}
-      .matching-steps span:nth-child(3){animation-delay:1.1s;}
 
-      /* result */
-      .result{animation:fadeUp .5s ease;}
-      .result-top{display:flex;align-items:flex-start;gap:18px;margin-bottom:20px;}
-      .avatar{
-        width:58px;height:58px;border-radius:16px;flex-shrink:0;
-        display:flex;align-items:center;justify-content:center;
-        background:linear-gradient(135deg,var(--ink),var(--ink-soft));
-        color:var(--gold-soft);font-family:"Spectral",serif;font-weight:600;font-size:20px;
+      .login-copy,
+      .login-card,
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
       }
-      .result-id{flex:1;}
-      .result-name{font-family:"Spectral",serif;font-size:21px;font-weight:600;}
-      .result-grad{font-family:"Inter",sans-serif;font-size:13px;color:var(--gold);font-weight:600;margin-left:8px;}
-      .result-role{color:var(--ink);font-size:15px;font-weight:500;margin-top:2px;}
-      .result-field{color:var(--ink-2);font-size:13px;margin-top:2px;}
-      .match-badge{
-        display:inline-flex;align-items:center;gap:7px;
-        font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
-        color:var(--ink-soft);background:var(--paper);
-        padding:7px 12px;border-radius:999px;border:1px solid var(--line);
-        height:fit-content;
-      }
-      .match-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);}
-      .result-blurb{
-        font-size:17px;color:var(--ink);line-height:1.55;
-        padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-        margin:0 0 18px;
-      }
-      .result-why{font-size:14px;color:var(--ink-2);margin-bottom:24px;}
-      .why-label{
-        display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-        color:var(--gold);font-weight:600;margin-bottom:5px;
-      }
-      .result-actions{display:flex;gap:12px;flex-wrap:wrap;}
 
-      /* HOW */
-      .steps{list-style:none;margin:0;padding:0;display:grid;gap:8px;}
-      .step{
-        display:flex;gap:24px;padding:28px 0;border-top:1px solid var(--line);
+      .login-copy {
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 520px;
       }
-      .step:last-child{border-bottom:1px solid var(--line);}
-      .step-n{
-        font-family:"Spectral",serif;font-size:15px;color:var(--gold);
-        font-weight:600;padding-top:4px;min-width:34px;
-      }
-      .step h3{font-size:21px;margin:0 0 8px;}
-      .step p{margin:0;color:var(--ink-2);max-width:620px;}
 
-      /* VALUE */
-      .value{padding-top:40px;}
-      .value-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
-      .value-col{
-        background:var(--card);border:1px solid var(--line);border-radius:18px;padding:34px;
+      .brand-row,
+      .brand-block {
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
-      .value-col h3{font-size:23px;margin:0 0 14px;}
-      .value-col p{margin:0;color:var(--ink-2);}
 
-      /* CTA */
-      .cta{max-width:none;background:var(--ink);margin-top:40px;}
-      .cta-inner{max-width:var(--maxw);margin:0 auto;padding:0 28px;text-align:center;}
-      .cta h2{color:var(--paper);font-size:clamp(28px,4.4vw,46px);margin:0 0 32px;}
-      .cta .btn-ghost{color:var(--paper);border-color:var(--gold-soft);}
-      .cta .btn-ghost:hover{background:var(--gold);color:var(--ink);border-color:var(--gold);}
-      .cta .btn-primary{background:var(--gold);color:var(--ink);}
-      .cta .btn-primary:hover{background:var(--gold-soft);}
-
-      /* FOOTER */
-      .footer{
-        max-width:var(--maxw);margin:0 auto;
-        padding:40px 28px 60px;
-        display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
-        color:var(--ink-2);font-size:14px;
+      .brand-row span,
+      .brand-block strong {
+        font-weight: 700;
+        letter-spacing: 0;
       }
-      .footer .brand{font-size:17px;}
 
-      @media (max-width:720px){
-        .nav-links a:not(.nav-cta){display:none;}
-        .value-grid{grid-template-columns:1fr;}
-        .section{padding:64px 22px;}
-        .hero{padding-top:54px;}
-        .demo-card{padding:24px;}
-        .throughline{height:150px;margin-top:40px;}
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: var(--accent);
+        color: white;
+        font-weight: 800;
       }
-      @media (prefers-reduced-motion:reduce){
-        *{animation:none!important;}
-        .tl-path{stroke-dashoffset:0;}
-        .tl-node text{opacity:1;}
+
+      .login-copy h1 {
+        max-width: 650px;
+        font-size: clamp(34px, 5vw, 58px);
+        line-height: 1.02;
+        letter-spacing: 0;
+        margin: 80px 0 24px;
+      }
+
+      .login-copy p {
+        max-width: 620px;
+        color: var(--muted);
+        font-size: 19px;
+        line-height: 1.55;
+      }
+
+      .login-card {
+        padding: 36px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 18px;
+      }
+
+      .login-card h2,
+      .top-bar h1,
+      .mentor-list h2,
+      .mentor-detail h2,
+      .conversation-head h2 {
+        margin-bottom: 0;
+      }
+
+      .section-kicker {
+        margin: 0 0 6px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 12px 13px;
+        color: var(--ink);
+        background: white;
+      }
+
+      input:focus {
+        outline: 3px solid var(--accent-soft);
+        border-color: var(--accent);
+      }
+
+      .primary-button,
+      .top-actions button {
+        border: 0;
+        border-radius: 6px;
+        background: var(--accent);
+        color: white;
+        padding: 12px 16px;
+        font-weight: 800;
+      }
+
+      .primary-button:hover,
+      .top-actions button:hover {
+        background: var(--accent-dark);
+      }
+
+      .primary-button:disabled {
+        background: var(--quiet);
+        cursor: not-allowed;
+      }
+
+      .login-note {
+        color: var(--quiet);
+        font-size: 14px;
+        margin-bottom: 0;
+      }
+
+      .app-shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 264px minmax(0, 1fr);
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        border-right: 1px solid var(--line);
+        background: #fbfcfd;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      .brand-block span,
+      .student-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .side-nav {
+        display: grid;
+        gap: 6px;
+      }
+
+      .side-nav button {
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        padding: 11px 12px;
+        text-align: left;
+        font-weight: 800;
+      }
+
+      .side-nav button.active,
+      .side-nav button:hover {
+        background: var(--accent-soft);
+        color: var(--accent-dark);
+      }
+
+      .student-card {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+      }
+
+      .student-avatar,
+      .mini-avatar,
+      .large-avatar {
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        background: var(--surface-2);
+        color: var(--accent-dark);
+        font-weight: 900;
+      }
+
+      .student-avatar,
+      .mini-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+      }
+
+      .large-avatar {
+        width: 88px;
+        height: 88px;
+        border-radius: 10px;
+        font-size: 25px;
+      }
+
+      .mentor-avatar {
+        background: var(--accent-soft);
+      }
+
+      .workspace {
+        padding: 28px;
+        min-width: 0;
+      }
+
+      .top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      .top-bar h1 {
+        font-size: 28px;
+        letter-spacing: 0;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .profile-layout,
+      .mentor-layout,
+      .messages-layout {
+        display: grid;
+        gap: 20px;
+      }
+
+      .profile-layout {
+        grid-template-columns: minmax(0, 1fr) 320px;
+      }
+
+      .profile-main,
+      .profile-aside {
+        display: grid;
+        gap: 20px;
+        align-content: start;
+      }
+
+      .panel {
+        padding: 24px;
+      }
+
+      .intro-panel {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+      }
+
+      .intro-panel h2,
+      .cv-section h3,
+      .profile-aside h3,
+      .detail-block h3,
+      .quick-panel h3 {
+        margin-bottom: 10px;
+      }
+
+      .intro-panel p,
+      .detail-block p,
+      .conversation-head p {
+        color: var(--muted);
+        line-height: 1.55;
+        margin-bottom: 0;
+      }
+
+      .profile-meta,
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .profile-meta span,
+      .tag-list span,
+      .availability,
+      .status {
+        border-radius: 999px;
+        background: var(--surface-2);
+        color: var(--muted);
+        padding: 6px 10px;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .tag-list span {
+        color: var(--accent-dark);
+        background: var(--accent-soft);
+      }
+
+      .cv-section ul,
+      .detail-block ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .score-panel dl {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+      }
+
+      .score-panel div {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 12px;
+      }
+
+      .score-panel div:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .score-panel dt {
+        color: var(--muted);
+      }
+
+      .score-panel dd {
+        margin: 0;
+        font-weight: 900;
+      }
+
+      .mentor-layout {
+        grid-template-columns: minmax(440px, 0.95fr) minmax(360px, 0.7fr);
+        align-items: start;
+      }
+
+      .list-header,
+      .detail-head,
+      .conversation-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .list-header {
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+
+      .list-header > span {
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .mentor-row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 32px 42px minmax(0, 1fr) 54px;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        padding: 13px;
+        margin-top: 10px;
+        text-align: left;
+      }
+
+      .mentor-row.selected,
+      .mentor-row:hover {
+        border-color: var(--accent);
+        background: #f8fbfc;
+      }
+
+      .rank {
+        color: var(--quiet);
+        font-weight: 900;
+      }
+
+      .mentor-row-body {
+        min-width: 0;
+      }
+
+      .mentor-row-body strong,
+      .mentor-row-body small,
+      .mentor-row-body em {
+        display: block;
+      }
+
+      .mentor-row-body small {
+        color: var(--muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mentor-row-body em {
+        color: var(--accent);
+        font-style: normal;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .rank-score {
+        justify-self: end;
+        color: var(--blue);
+        font-weight: 900;
+      }
+
+      .mentor-detail {
+        position: sticky;
+        top: 28px;
+        display: grid;
+        gap: 20px;
+      }
+
+      .match-score {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        background: #f9fbfc;
+      }
+
+      .match-score strong {
+        color: var(--accent-dark);
+        font-size: 30px;
+      }
+
+      .match-score span,
+      .availability {
+        color: var(--muted);
+      }
+
+      .detail-block {
+        border-top: 1px solid var(--line);
+        padding-top: 18px;
+      }
+
+      .availability {
+        width: fit-content;
+        border-radius: 6px;
+      }
+
+      .messages-layout {
+        grid-template-columns: minmax(0, 1fr) 330px;
+        align-items: start;
+      }
+
+      .conversation-panel {
+        min-height: 640px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 18px;
+      }
+
+      .conversation-head {
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 16px;
+      }
+
+      .conversation-head .status {
+        margin-left: auto;
+      }
+
+      .status.online {
+        background: #e4f5e9;
+        color: #25633a;
+      }
+
+      .message-thread {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        justify-content: flex-end;
+      }
+
+      .message,
+      .empty-message {
+        max-width: 68%;
+        border-radius: 8px;
+        padding: 12px 14px;
+        line-height: 1.45;
+      }
+
+      .message.mentor {
+        background: var(--surface-2);
+        color: var(--ink);
+      }
+
+      .message.student {
+        align-self: flex-end;
+        background: var(--accent);
+        color: white;
+      }
+
+      .empty-message {
+        max-width: 100%;
+        background: var(--surface-2);
+        color: var(--muted);
+      }
+
+      .message-box {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        border-top: 1px solid var(--line);
+        padding-top: 16px;
+      }
+
+      .quick-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .quick-list button {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        color: var(--muted);
+        padding: 12px;
+        text-align: left;
+        line-height: 1.35;
+      }
+
+      .quick-list button:hover:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--ink);
+      }
+
+      .quick-list button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 980px) {
+        .app-shell,
+        .login-panel,
+        .profile-layout,
+        .mentor-layout,
+        .messages-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+          height: auto;
+        }
+
+        .side-nav {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .student-card {
+          margin-top: 0;
+        }
+
+        .mentor-detail {
+          position: static;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .login-page,
+        .workspace,
+        .sidebar {
+          padding: 18px;
+        }
+
+        .login-copy,
+        .login-card,
+        .panel {
+          padding: 20px;
+        }
+
+        .login-copy {
+          min-height: 0;
+        }
+
+        .login-copy h1 {
+          margin: 48px 0 18px;
+        }
+
+        .top-bar,
+        .intro-panel,
+        .detail-head,
+        .conversation-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .top-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .mentor-row {
+          grid-template-columns: 26px 42px minmax(0, 1fr);
+        }
+
+        .rank-score {
+          grid-column: 3;
+          justify-self: start;
+        }
+
+        .message,
+        .empty-message {
+          max-width: 100%;
+        }
+
+        .message-box {
+          grid-template-columns: 1fr;
+        }
       }
     `}</style>
   );
