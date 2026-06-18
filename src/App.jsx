@@ -135,6 +135,7 @@ const QUICK_MESSAGES = [
 ];
 
 export default function App() {
+  const [screen, setScreen] = useState("landing");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState("matches");
   const [selectedMentor, setSelectedMentor] = useState(MENTORS[0]);
@@ -177,10 +178,19 @@ export default function App() {
     setDraft("");
   }
 
+  if (screen === "landing") {
+    return (
+      <>
+        <LandingPage onLoginClick={() => setScreen("login")} />
+        <Style />
+      </>
+    );
+  }
+
   if (!isLoggedIn) {
     return (
       <>
-        <LoginPage onLogin={handleLogin} />
+        <LoginPage onLogin={handleLogin} onBack={() => setScreen("landing")} />
         <Style />
       </>
     );
@@ -259,7 +269,101 @@ export default function App() {
   );
 }
 
-function LoginPage({ onLogin }) {
+function LandingPage({ onLoginClick }) {
+  return (
+    <main className="landing-page">
+      <header className="landing-nav">
+        <div className="brand-row">
+          <img className="brand-logo large" src="/NexMent.png" alt="NexMent logo" />
+          <span>NexMent</span>
+        </div>
+        <button className="nav-login" onClick={onLoginClick} type="button">
+          Log in
+        </button>
+      </header>
+
+      <section className="landing-hero">
+        <div className="hero-copy">
+          <p className="section-kicker">Graduate mentorship, made personal</p>
+          <h1>Your network shouldn't end at graduation.</h1>
+          <p>
+            We partner with universities to connect every new graduate with a mentor
+            matched specifically to them by field, career goals, and background.
+          </p>
+          <button className="primary-button" onClick={onLoginClick} type="button">
+            Log in
+          </button>
+        </div>
+        <div className="hero-logo-wrap" aria-hidden="true">
+          <img src="/NexMent.png" alt="" />
+        </div>
+      </section>
+
+      <section className="landing-section">
+        <p className="section-kicker">Who we are</p>
+        <h2>Graduating from college is supposed to be a beginning.</h2>
+        <div className="text-columns">
+          <p>
+            For most new graduates, it's the moment they lose the people who knew
+            how to help them. The professors, the academic advisors, the campus
+            network all disappear almost overnight.
+          </p>
+          <p>
+            Right when the questions get harder, like which offer to take or
+            whether you're even on the right path, the support is gone. We're
+            rebuilding that support, and making it personal.
+          </p>
+        </div>
+      </section>
+
+      <section className="landing-band">
+        <div>
+          <p className="section-kicker">How matching works</p>
+          <h2>Not a stranger from the internet.</h2>
+        </div>
+        <p>
+          Every match is based on field, career goals, and background. When possible,
+          we prioritize someone from your own school who studied what you studied
+          and has already walked the path you're starting. The same advice means
+          something completely different when it comes from someone who has been there.
+        </p>
+      </section>
+
+      <section className="landing-grid">
+        <article>
+          <p className="section-kicker">Why it matters for graduates</p>
+          <h2>Know who to trust.</h2>
+          <p>
+            The hardest part of early career isn't a lack of information. It's not
+            knowing who to trust. We solve that by grounding every match in a real,
+            verifiable connection: a shared alma mater, a shared field, and a real
+            person invested in your success.
+          </p>
+        </article>
+        <article>
+          <p className="section-kicker">Why it matters for universities</p>
+          <h2>Support graduates after they leave.</h2>
+          <p>
+            Graduate outcomes and alumni engagement sit at the core of every
+            institution's mission, and both are notoriously hard to move. We give
+            universities a measurable, scalable way to support graduates after they
+            leave, while turning engaged alumni into an active community that gives back.
+          </p>
+        </article>
+      </section>
+
+      <section className="landing-cta">
+        <h2>Your network shouldn't end at graduation.</h2>
+        <p>We make sure it doesn't.</p>
+        <button className="primary-button" onClick={onLoginClick} type="button">
+          Continue to login
+        </button>
+      </section>
+    </main>
+  );
+}
+
+function LoginPage({ onLogin, onBack }) {
   return (
     <main className="login-page">
       <section className="login-panel">
@@ -273,6 +377,9 @@ function LoginPage({ onLogin }) {
             A calmer career platform for graduates: build a serious profile, review
             ranked mentor recommendations, match, and start the conversation.
           </p>
+          <button className="text-button" onClick={onBack} type="button">
+            Back to home
+          </button>
         </div>
 
         <form className="login-card" onSubmit={onLogin}>
@@ -596,6 +703,169 @@ function Style() {
         margin-top: 0;
       }
 
+      .landing-page {
+        min-height: 100vh;
+        background: var(--bg);
+      }
+
+      .landing-nav {
+        min-height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 18px clamp(22px, 5vw, 64px);
+        border-bottom: 1px solid var(--line);
+        background: rgba(251, 252, 253, 0.9);
+        backdrop-filter: blur(12px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .nav-login,
+      .text-button {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: white;
+        color: var(--accent-dark);
+        padding: 10px 14px;
+        font-weight: 800;
+      }
+
+      .nav-login:hover,
+      .text-button:hover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .landing-hero {
+        min-height: calc(100vh - 76px);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.75fr);
+        align-items: center;
+        gap: clamp(32px, 5vw, 72px);
+        padding: clamp(56px, 8vw, 96px) clamp(22px, 5vw, 64px);
+      }
+
+      .hero-copy {
+        max-width: 780px;
+      }
+
+      .hero-copy h1 {
+        max-width: 760px;
+        font-size: clamp(46px, 7vw, 82px);
+        line-height: 0.98;
+        letter-spacing: 0;
+        margin: 0 0 24px;
+      }
+
+      .hero-copy p {
+        max-width: 640px;
+        color: var(--muted);
+        font-size: 21px;
+        line-height: 1.5;
+        margin-bottom: 28px;
+      }
+
+      .hero-logo-wrap {
+        display: grid;
+        place-items: center;
+      }
+
+      .hero-logo-wrap img {
+        width: min(390px, 100%);
+        height: auto;
+        border-radius: 18px;
+        box-shadow: 0 24px 70px rgba(31, 41, 51, 0.14);
+      }
+
+      .landing-section,
+      .landing-band,
+      .landing-grid,
+      .landing-cta {
+        padding: clamp(54px, 7vw, 88px) clamp(22px, 5vw, 64px);
+      }
+
+      .landing-section {
+        background: white;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .landing-section h2,
+      .landing-band h2,
+      .landing-grid h2,
+      .landing-cta h2 {
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1.08;
+        letter-spacing: 0;
+        margin-bottom: 22px;
+      }
+
+      .text-columns {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px;
+        max-width: 1080px;
+      }
+
+      .text-columns p,
+      .landing-band p,
+      .landing-grid p,
+      .landing-cta p {
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.65;
+      }
+
+      .landing-band {
+        display: grid;
+        grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1fr);
+        gap: 36px;
+        align-items: start;
+      }
+
+      .landing-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .landing-grid article {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: clamp(24px, 4vw, 38px);
+        box-shadow: var(--shadow);
+      }
+
+      .landing-cta {
+        text-align: center;
+        background: var(--accent-dark);
+        color: white;
+      }
+
+      .landing-cta h2 {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .landing-cta p {
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 22px;
+        margin-bottom: 24px;
+      }
+
+      .landing-cta .primary-button {
+        background: white;
+        color: var(--accent-dark);
+      }
+
+      .landing-cta .primary-button:hover {
+        background: var(--accent-soft);
+      }
+
       .login-page {
         min-height: 100vh;
         display: grid;
@@ -671,6 +941,10 @@ function Style() {
         color: var(--muted);
         font-size: 19px;
         line-height: 1.55;
+      }
+
+      .login-copy .text-button {
+        width: fit-content;
       }
 
       .login-card {
@@ -1171,10 +1445,22 @@ function Style() {
       @media (max-width: 980px) {
         .app-shell,
         .login-panel,
+        .landing-hero,
+        .landing-band,
+        .landing-grid,
+        .text-columns,
         .profile-layout,
         .mentor-layout,
         .messages-layout {
           grid-template-columns: 1fr;
+        }
+
+        .landing-hero {
+          min-height: auto;
+        }
+
+        .hero-logo-wrap {
+          justify-content: start;
         }
 
         .sidebar {
@@ -1197,9 +1483,31 @@ function Style() {
 
       @media (max-width: 640px) {
         .login-page,
+        .landing-nav,
+        .landing-hero,
+        .landing-section,
+        .landing-band,
+        .landing-grid,
+        .landing-cta,
         .workspace,
         .sidebar {
           padding: 18px;
+        }
+
+        .landing-nav {
+          align-items: flex-start;
+        }
+
+        .hero-copy h1 {
+          font-size: 44px;
+        }
+
+        .hero-copy p {
+          font-size: 18px;
+        }
+
+        .hero-logo-wrap img {
+          width: min(280px, 100%);
         }
 
         .login-copy,
