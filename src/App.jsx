@@ -9,15 +9,15 @@ const STUDENT = {
   interests: ["product analytics", "startup strategy", "AI tools", "consumer research"],
   languages: ["English", "Mandarin"],
   summary:
-    "Undergraduate student building toward product, data, and startup roles. Looking for mentors who can give concrete recruiting advice, portfolio feedback, and industry context.",
+    "Recent graduate building toward product, data, and startup roles. Looking for mentors who can give concrete recruiting advice, portfolio feedback, and industry context.",
   education: [
     "B.A. track: Data Science and Economics",
     "Relevant work: statistics, databases, machine learning, market research",
   ],
   experience: [
     "Campus research projects on survey data, product positioning, and user behavior",
-    "Built prototypes for participant recruitment and student networking workflows",
-    "Event and community work with international student groups",
+    "Built prototypes for participant recruitment and graduate networking workflows",
+    "Event and community work with international graduate groups",
   ],
   projects: [
     "SurveyBridge: research participant recruitment concept",
@@ -27,7 +27,7 @@ const STUDENT = {
   goals: [
     "Find an internship in product, data, or strategy",
     "Improve resume and LinkedIn positioning",
-    "Understand early-career paths from alumni with similar backgrounds",
+    "Understand early-career paths from mentors with similar backgrounds, with alumni prioritized when relevant",
   ],
 };
 
@@ -44,7 +44,7 @@ const MENTORS = [
     fit: "Best overall fit",
     focus: ["Product analytics", "Consumer apps", "Internship recruiting"],
     bio:
-      "Maya moved from economics coursework into product analytics, then product management. She mentors students on turning class projects into interview-ready product stories.",
+      "Maya moved from economics coursework into product analytics, then product management. She mentors graduates on turning projects into interview-ready product stories.",
     why:
       "Matches your product analytics interest, startup curiosity, and need for practical recruiting guidance.",
     cv: [
@@ -66,7 +66,7 @@ const MENTORS = [
     fit: "Strong data mentor",
     focus: ["Machine learning", "Portfolio review", "Research to industry"],
     bio:
-      "Daniel helps students explain technical projects clearly and decide whether industry, research, or graduate school makes more sense.",
+      "Daniel helps graduates explain technical projects clearly and decide whether industry, research, or further study makes more sense.",
     why:
       "Strong overlap with your data science coursework and project-heavy profile.",
     cv: ["Data Scientist, Spotify", "Former Research Assistant, BU", "M.S. Applied Analytics"],
@@ -84,10 +84,10 @@ const MENTORS = [
     fit: "Technical interview help",
     focus: ["Backend systems", "Technical interviews", "First job search"],
     bio:
-      "Priya is direct, practical, and useful for students who want to understand what technical hiring actually rewards.",
+      "Priya is direct, practical, and useful for graduates who want to understand what technical hiring actually rewards.",
     why:
       "Useful if you decide to pursue more technical AI tooling or engineering-adjacent roles.",
-    cv: ["Senior Engineer, Stripe", "Former Engineer, Dropbox", "Mentor for first-gen students"],
+    cv: ["Senior Engineer, Stripe", "Former Engineer, Dropbox", "Mentor for first-gen graduates"],
     availability: "3 openings this month",
   },
   {
@@ -102,7 +102,7 @@ const MENTORS = [
     fit: "Business strategy path",
     focus: ["Consulting", "Case interviews", "Business storytelling"],
     bio:
-      "Sofia works well with students who are choosing between consulting, startups, and product roles.",
+      "Sofia works well with graduates who are choosing between consulting, startups, and product roles.",
     why:
       "Connects your economics background with strategy recruiting and structured interview prep.",
     cv: ["Associate, McKinsey", "Former Venture Fellow", "BU Questrom alumni mentor"],
@@ -120,7 +120,7 @@ const MENTORS = [
     fit: "Creative strategy mentor",
     focus: ["Brand strategy", "Media", "Communications"],
     bio:
-      "Hannah helps students turn broad creative interests into a focused portfolio and outreach strategy.",
+      "Hannah helps graduates turn broad creative interests into a focused portfolio and outreach strategy.",
     why:
       "Good secondary match for communication, storytelling, and positioning work.",
     cv: ["Brand Strategy Lead, A24", "Former Strategist, Wieden+Kennedy", "Portfolio reviewer"],
@@ -193,7 +193,7 @@ export default function App() {
           <img className="brand-logo" src="/NexMent.png" alt="NexMent logo" />
           <div>
             <strong>NexMent</strong>
-            <span>Student portal</span>
+            <span>Graduate Portal</span>
           </div>
         </div>
 
@@ -268,20 +268,20 @@ function LoginPage({ onLogin }) {
             <img className="brand-logo large" src="/NexMent.png" alt="NexMent logo" />
             <span>NexMent</span>
           </div>
-          <h1>Sign in as a student and find the alumni mentor who fits your path.</h1>
+          <h1>Sign in as a GRADUATE and find the MENTOR who fits your path.</h1>
           <p>
-            A calmer career platform for students: build a serious profile, review
+            A calmer career platform for graduates: build a serious profile, review
             ranked mentor recommendations, match, and start the conversation.
           </p>
         </div>
 
         <form className="login-card" onSubmit={onLogin}>
           <div>
-            <p className="section-kicker">Student login</p>
+            <p className="section-kicker">Graduate login</p>
             <h2>Welcome back</h2>
           </div>
           <label>
-            School email
+            Email
             <input defaultValue="selina@bu.edu" type="email" />
           </label>
           <label>
@@ -289,7 +289,7 @@ function LoginPage({ onLogin }) {
             <input defaultValue="nexment" type="password" />
           </label>
           <button className="primary-button" type="submit">
-            Log in as student
+            Log in as GRADUATE
           </button>
           <p className="login-note">Prototype login. No account setup required.</p>
         </form>
@@ -303,7 +303,7 @@ function TopBar() {
     <header className="top-bar">
       <div>
         <p className="section-kicker">Boston University network</p>
-        <h1>Student mentorship dashboard</h1>
+        <h1>Mentorship dashboard</h1>
       </div>
       <div className="top-actions">
         <span>Profile strength: 88%</span>
@@ -320,7 +320,7 @@ function ProfilePage() {
         <div className="panel intro-panel">
           <div className="large-avatar">SZ</div>
           <div>
-            <p className="section-kicker">Student profile</p>
+            <p className="section-kicker">Graduate profile</p>
             <h2>{STUDENT.name}</h2>
             <p>{STUDENT.summary}</p>
             <div className="profile-meta">
@@ -366,7 +366,7 @@ function ProfilePage() {
               <dd>Medium</dd>
             </div>
             <div>
-              <dt>Alumni proximity</dt>
+              <dt>Alumni likelihood</dt>
               <dd>BU verified</dd>
             </div>
           </dl>
@@ -398,7 +398,7 @@ function MentorPage({ mentors, selectedMentor, matchedMentorId, onSelect, onMatc
             <p className="section-kicker">Ranked recommendations</p>
             <h2>List of mentors</h2>
           </div>
-          <span>{mentors.length} alumni</span>
+          <span>{mentors.length} mentors</span>
         </div>
 
         {mentors.map((mentor, index) => (
