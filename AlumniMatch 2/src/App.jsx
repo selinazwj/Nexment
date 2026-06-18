@@ -21,7 +21,7 @@ const STUDENT = {
   ],
   projects: [
     "SurveyBridge: research participant recruitment concept",
-    "AlumniMatch: mentor recommendation and outreach prototype",
+    "NexMent: mentor recommendation and outreach prototype",
     "Predictive analysis notebooks for business and savings estimation",
   ],
   goals: [
@@ -190,9 +190,9 @@ export default function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand-block">
-          <div className="brand-mark">A</div>
+          <img className="brand-logo" src="/NexMent.png" alt="NexMent logo" />
           <div>
-            <strong>AlumniMatch</strong>
+            <strong>NexMent</strong>
             <span>Student portal</span>
           </div>
         </div>
@@ -265,8 +265,8 @@ function LoginPage({ onLogin }) {
       <section className="login-panel">
         <div className="login-copy">
           <div className="brand-row">
-            <div className="brand-mark">A</div>
-            <span>AlumniMatch</span>
+            <img className="brand-logo large" src="/NexMent.png" alt="NexMent logo" />
+            <span>NexMent</span>
           </div>
           <h1>Sign in as a student and find the alumni mentor who fits your path.</h1>
           <p>
@@ -286,7 +286,7 @@ function LoginPage({ onLogin }) {
           </label>
           <label>
             Password
-            <input defaultValue="alumnimatch" type="password" />
+            <input defaultValue="nexment" type="password" />
           </label>
           <button className="primary-button" type="submit">
             Log in as student
@@ -644,15 +644,18 @@ function Style() {
         letter-spacing: 0;
       }
 
-      .brand-mark {
-        width: 36px;
-        height: 36px;
+      .brand-logo {
+        width: 42px;
+        height: 42px;
         border-radius: 8px;
-        display: grid;
-        place-items: center;
-        background: var(--accent);
-        color: white;
-        font-weight: 800;
+        object-fit: contain;
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .brand-logo.large {
+        width: 52px;
+        height: 52px;
       }
 
       .login-copy h1 {

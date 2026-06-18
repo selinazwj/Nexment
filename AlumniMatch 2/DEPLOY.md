@@ -1,4 +1,4 @@
-# Throughline — 部署说明（让全世界都能访问）
+# NexMent — 部署说明（让全世界都能访问）
 
 这是一个 Vite + React 单页网站，纯前端、无后端。
 交互/表单（填 field/profile → 模拟匹配校友 mentor）全部跑在浏览器里。
